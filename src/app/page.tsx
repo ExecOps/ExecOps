@@ -132,6 +132,30 @@ const COLLECTION_HUES = [
   'bg-cyan-50 text-cyan-700 border-cyan-200 bg-cyan-500',
   'bg-pink-50 text-pink-700 border-pink-200 bg-pink-500',
   'bg-lime-50 text-lime-700 border-lime-200 bg-lime-500',
+  'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 bg-fuchsia-500',
+  'bg-indigo-50 text-indigo-700 border-indigo-200 bg-indigo-500',
+  'bg-red-50 text-red-700 border-red-200 bg-red-500',
+  'bg-yellow-50 text-yellow-700 border-yellow-200 bg-yellow-500',
+  'bg-green-50 text-green-700 border-green-200 bg-green-500',
+  'bg-blue-50 text-blue-700 border-blue-200 bg-blue-500',
+  'bg-purple-50 text-purple-700 border-purple-200 bg-purple-500',
+  'bg-stone-100 text-stone-700 border-stone-300 bg-stone-500',
+  'bg-zinc-100 text-zinc-700 border-zinc-300 bg-zinc-500',
+  'bg-neutral-100 text-neutral-700 border-neutral-300 bg-neutral-500',
+  'bg-amber-100 text-amber-800 border-amber-300 bg-amber-600',
+  'bg-emerald-100 text-emerald-800 border-emerald-300 bg-emerald-600',
+  'bg-sky-100 text-sky-800 border-sky-300 bg-sky-600',
+  'bg-rose-100 text-rose-800 border-rose-300 bg-rose-600',
+  'bg-violet-100 text-violet-800 border-violet-300 bg-violet-600',
+  'bg-teal-100 text-teal-800 border-teal-300 bg-teal-600',
+  'bg-orange-100 text-orange-800 border-orange-300 bg-orange-600',
+  'bg-cyan-100 text-cyan-800 border-cyan-300 bg-cyan-600',
+  'bg-pink-100 text-pink-800 border-pink-300 bg-pink-600',
+  'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300 bg-fuchsia-600',
+  'bg-lime-100 text-lime-800 border-lime-300 bg-lime-600',
+  'bg-red-100 text-red-800 border-red-300 bg-red-600',
+  'bg-yellow-100 text-yellow-800 border-yellow-300 bg-yellow-600',
+  'bg-indigo-100 text-indigo-800 border-indigo-300 bg-indigo-600',
 ];
 
 function getCollectionColor(index: number) {
@@ -1711,29 +1735,29 @@ function ModulesView() {
       </div>
 
       {/* Category Pills */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         <Button
           variant={!activeCategory ? 'default' : 'outline'}
           size="sm"
-          className="h-8 text-xs rounded-full gap-1.5"
+          className="h-7 text-xs rounded-full gap-1.5"
           onClick={() => setActiveCategory(null)}
         >
           <Layers className="h-3 w-3" />
           Todos
         </Button>
-        {collections.slice(0, 25).map((col, idx) => {
+        {collections.map((col, idx) => {
           const colColor = getCollectionColor(idx);
           return (
             <Button
               key={col.name}
               variant={activeCategory === col.name ? 'default' : 'outline'}
               size="sm"
-              className={`h-8 text-xs rounded-full gap-1.5 transition-colors ${activeCategory === col.name ? '' : `${colColor.bg} ${colColor.text} ${colColor.border}`}`}
+              className={`h-7 text-[11px] rounded-full gap-1 transition-colors ${activeCategory === col.name ? '' : `${colColor.bg} ${colColor.text} ${colColor.border}`}`}
               onClick={() => setActiveCategory(activeCategory === col.name ? null : col.name)}
             >
-              <div className={`w-1.5 h-1.5 rounded-full ${activeCategory === col.name ? 'bg-white' : colColor.dot}`} />
+              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeCategory === col.name ? 'bg-white' : colColor.dot}`} />
               {col.name.split('.').pop()}
-              <span className="opacity-60">{col.count}</span>
+              <span className="opacity-50">{col.count}</span>
             </Button>
           );
         })}
