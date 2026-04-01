@@ -1721,7 +1721,7 @@ function ModulesView() {
           <Layers className="h-3 w-3" />
           Todos
         </Button>
-        {collections.slice(0, 15).map((col, idx) => {
+        {collections.slice(0, 25).map((col, idx) => {
           const colColor = getCollectionColor(idx);
           return (
             <Button
@@ -1750,7 +1750,7 @@ function ModulesView() {
         </Card>
       ) : (
         <div className="space-y-1.5">
-          {filteredModules.slice(0, 100).map((mod, i) => {
+          {filteredModules.slice(0, 200).map((mod, i) => {
             const colIdx = collections.findIndex(c => c.name === mod.collection);
             const colColor = getCollectionColor(colIdx >= 0 ? colIdx : 0);
             return (
@@ -1758,7 +1758,7 @@ function ModulesView() {
                 key={mod.name}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.008, 0.4), duration: 0.12 }}
+                transition={{ delay: Math.min(i * 0.005, 0.3), duration: 0.1 }}
               >
                 <Card className="hover:shadow-sm transition-all duration-150 py-0">
                   <CardContent className="p-3.5 flex items-center gap-3">
@@ -1776,9 +1776,9 @@ function ModulesView() {
               </motion.div>
             );
           })}
-          {filteredModules.length > 100 && (
+          {filteredModules.length > 200 && (
             <div className="text-center py-4 text-sm text-muted-foreground">
-              Mostrando 100 de {filteredModules.length} módulos. Usa el buscador para filtrar.
+              Mostrando 200 de {filteredModules.length} módulos. Usa el buscador para filtrar.
             </div>
           )}
         </div>

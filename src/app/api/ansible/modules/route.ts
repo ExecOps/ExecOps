@@ -10,8 +10,72 @@ interface ModuleEntry {
   shortName: string;
 }
 
-export async function GET() {
-  return new Promise((resolve) => {
+interface CollectionInfo {
+  name: string;
+  count: number;
+}
+
+interface CachedModules {
+  modules: ModuleEntry[];
+  collections: CollectionInfo[];
+  total: number;
+  timestamp: number;
+}
+
+// In-memory cache to avoid re-running ansible-doc on every request
+let moduleCache: CachedModules | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function parseModules(stdout: string): { modules: ModuleEntry[]; collections: CollectionInfo[] } {
+  const lines = stdout.split("\n");
+  const modules: ModuleEntry[] = [];
+  const seen = new Set<string>();
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("[WARNING]")) continue;
+
+    // Module name is everything before 2+ whitespace, path after
+    const spaceIdx = trimmed.search(/\s{2,}/);
+    if (spaceIdx <= 0) continue;
+
+    const fullName = trimmed.substring(0, spaceIdx);
+
+    // Must contain at least one dot (collection.module format)
+    if (!fullName.includes(".")) continue;
+
+    // Deduplicate
+    if (seen.has(fullName)) continue;
+    seen.add(fullName);
+
+    const dotIndex = fullName.lastIndexOf(".");
+    const collection = fullName.substring(0, dotIndex > 0 ? dotIndex : fullName.length);
+    const shortName = fullName.substring(dotIndex + 1);
+
+    modules.push({ name: fullName, collection, shortName });
+  }
+
+  // Group by collection
+  const collectionMap = new Map<string, number>();
+  for (const m of modules) {
+    collectionMap.set(m.collection, (collectionMap.get(m.collection) || 0) + 1);
+  }
+
+  // Sort collections by count descending
+  const collections = [...collectionMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count }));
+
+  return { modules, collections };
+}
+
+function loadModules(): Promise<CachedModules> {
+  // Return cached data if still valid
+  if (moduleCache && Date.now() - moduleCache.timestamp < CACHE_TTL) {
+    return Promise.resolve(moduleCache);
+  }
+
+  return new Promise((resolve, reject) => {
     const proc = spawn(ANSIBLE_DOC, ["-F"], {
       cwd: process.cwd(),
       env: { ...process.env, HOME, PATH: process.env.PATH },
@@ -31,60 +95,35 @@ export async function GET() {
 
     proc.on("close", (code) => {
       if (code === 0 && stdout) {
-        // Parse: each line is "MODULE_NAME    /path/to/module.py"
-        const lines = stdout.split("\n");
-        const modules: ModuleEntry[] = [];
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed.startsWith("[WARNING]")) continue;
-
-          // Module name is everything before whitespace, path after
-          const parts = trimmed.split(/\s{2,}/);
-          if (parts.length >= 1 && parts[0].includes(".")) {
-            const fullName = parts[0];
-            const dotIndex = fullName.lastIndexOf(".");
-            const collection = fullName.substring(0, dotIndex > 0 ? dotIndex : fullName.length);
-            const shortName = fullName.includes(".") ? fullName.split(".").pop() || fullName : fullName;
-
-            modules.push({
-              name: fullName,
-              collection,
-              shortName,
-            });
-          }
-        }
-
-        // Group by collection
-        const collections = new Map<string, number>();
-        for (const m of modules) {
-          collections.set(m.collection, (collections.get(m.collection) || 0) + 1);
-        }
-
-        // Sort collections by count (most popular first)
-        const sortedCollections = [...collections.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .map(([name, count]) => ({ name, count }));
-
-        return resolve(
-          NextResponse.json({
-            modules: modules.slice(0, 5000), // Limit for performance
-            total: modules.length,
-            collections: sortedCollections,
-          })
-        );
+        const { modules, collections } = parseModules(stdout);
+        moduleCache = {
+          modules,
+          collections,
+          total: modules.length,
+          timestamp: Date.now(),
+        };
+        resolve(moduleCache);
       } else {
-        return resolve(
-          NextResponse.json(
-            { error: "Failed to list modules", exitCode: code, stderr: stderr.substring(0, 500) },
-            { status: 500 }
-          )
-        );
+        reject(new Error(`Failed to list modules (exit ${code}): ${stderr.substring(0, 500)}`));
       }
     });
 
     proc.on("error", (err) => {
-      resolve(NextResponse.json({ error: err.message }, { status: 500 }));
+      reject(err);
     });
   });
+}
+
+export async function GET() {
+  try {
+    const data = await loadModules();
+    return NextResponse.json({
+      modules: data.modules,
+      total: data.total,
+      collections: data.collections,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
