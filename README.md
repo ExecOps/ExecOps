@@ -1,4 +1,4 @@
-# ExecOps v0.01a
+# ExecOps v0.10b
 
 **Interfaz web para gestionar y ejecutar playbooks de Ansible directamente desde el navegador.**
 
@@ -638,7 +638,7 @@ Las plantillas usan comentarios YAML como metadatos:
 
 ## Changelog
 
-### v0.01a (2026-03-31)
+### v0.10b (2026-04-01)
 
 - **Primera version alpha**
 - Dashboard con estadisticas e informacion del sistema en tiempo real
