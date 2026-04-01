@@ -45,6 +45,14 @@ ExecOps es una aplicación full-stack construida con Next.js 16 que permite crea
 - Instalacion con un clic: se copian como playbooks editables
 - Categorias: System, Development, Security, Monitoring, Web, General
 
+### Inventario
+- **Editor integrado con Monaco Editor** para editar `inventory.ini` con resaltado de sintaxis INI
+- **Analisis automatico del inventario**: parseo en tiempo real que muestra hosts y grupos detectados
+- **Visualizacion de hosts**: tarjetas con nombre del host y variables asociadas (conexion, usuario, puerto...)
+- **Visualizacion de grupos**: lista de grupos con los hosts pertenecientes a cada uno
+- **Guardado instantaneo** con confirmacion de cambios y deteccion de modificaciones sin guardar
+- Formato estandar INI de Ansible con soporte completo para variables de host y grupos
+
 ### Explorador de Modulos
 - **9,713 modulos** de Ansible indexados y buscables
 - Organizados por coleccion (fortinet, cisco, community.general, azure, amazon.aws...)
@@ -64,7 +72,7 @@ ExecOps es una aplicación full-stack construida con Next.js 16 que permite crea
   <img src="https://github.com/ExecOps/ExecOps/raw/main/public/screenshot.png" alt="ExecOps Dashboard" width="800" />
 </p>
 
-La interfaz se compone de 5 pestañas principales: **Dashboard**, **Playbooks**, **Plantillas**, **Módulos** y **Ejecuciones**.
+La interfaz se compone de 6 pestañas principales: **Dashboard**, **Playbooks**, **Plantillas**, **Inventario**, **Módulos** y **Ejecuciones**.
 
 ---
 
@@ -86,6 +94,7 @@ flowchart TB
         PlaybooksAPI["GET/POST/PUT/DELETE /api/ansible/playbooks"]
         RunAPI["POST /api/ansible/playbooks/:name/run"]
         TemplatesAPI["GET/POST /api/ansible/templates"]
+        InventoryAPI["GET/PUT /api/ansible/inventory"]
         ExecAPI["GET /api/ansible/executions"]
     end
 
@@ -198,6 +207,8 @@ ExecOps/
 │   │       └── ansible/
 │   │           ├── facts/route.ts           # GET  /api/ansible/facts
 │   │           ├── modules/route.ts         # GET  /api/ansible/modules
+│   │           ├── inventory/route.ts        # GET  /api/ansible/inventory
+│   │           │                            # PUT  /api/ansible/inventory
 │   │           ├── templates/route.ts       # GET  /api/ansible/templates
 │   │           │                            # POST /api/ansible/templates
 │   │           ├── playbooks/
@@ -246,7 +257,7 @@ ExecOps/
 └── README.md                         # Este archivo
 ```
 
-**Total de codigo fuente:** ~2,221 lineas (API routes + pagina principal)
+**Total de codigo fuente:** ~2,500+ lineas (API routes + pagina principal)
 
 ---
 
@@ -523,6 +534,35 @@ GET /api/ansible/executions/:id
 }
 ```
 
+### Inventory
+
+```
+GET  /api/ansible/inventory
+PUT  /api/ansible/inventory
+```
+
+**GET /api/ansible/inventory → 200:**
+```json
+{
+  "content": "localhost ansible_connection=local\n\n[webservers]\nweb1 ansible_host=192.168.1.10\n",
+  "hosts": [
+    { "name": "localhost", "vars": { "ansible_connection": "local" } },
+    { "name": "web1", "vars": { "ansible_host": "192.168.1.10" } }
+  ],
+  "groups": [
+    { "name": "webservers", "hosts": ["web1"], "vars": {} }
+  ]
+}
+```
+
+**PUT /api/ansible/inventory → 200:**
+```json
+// Request body:
+{ "content": "localhost ansible_connection=local\n" }
+// Response:
+{ "success": true, "content": "...", "hosts": [...], "groups": [...] }
+```
+
 ### Templates
 
 ```
@@ -642,13 +682,15 @@ Las plantillas usan comentarios YAML como metadatos:
 
 - **Primera version alpha**
 - Dashboard con estadisticas e informacion del sistema en tiempo real
-- CRUD completo de playbooks con editor YAML
-- Ejecucion de playbooks con streaming SSE en tiempo real
-- 10 plantillas predefinidas por categoria
+- CRUD completo de playbooks con editor Monaco (YAML)
+- Ejecucion de playbooks con streaming SSE en tiempo real y autoscroll
+- 10 plantillas predefinidas por categoria con visor de codigo
+- **Gestion de inventario** con editor Monaco (INI), parseo automatico de hosts y grupos
 - Explorador de 9,713 modulos de Ansible organizados por coleccion
-- Historial de ejecuciones con visor de logs
+- Historial de ejecuciones con visor de logs en terminal oscura
+- Deteccion de cambios sin guardar (beforeunload)
 - Interfaz responsiva con animaciones (framer-motion)
-- 9 endpoints API REST
+- 10 endpoints API REST
 - Sin autenticacion
 - Sin base de datos (filesystem only)
 
