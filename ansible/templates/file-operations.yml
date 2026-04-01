@@ -1,0 +1,77 @@
+# name: File Operations
+# description: Common file operations - copy, move, permissions, content management
+---
+- name: File Operations
+  hosts: localhost
+  connection: local
+  become: false
+  vars:
+    work_dir: "{{ ansible_env.HOME }}/ansible-demo"
+    demo_files:
+      - "config.json"
+      "data.csv"
+      "README.md"
+      "notes.txt"
+  tasks:
+    - name: Create working directory
+      ansible.builtin.file:
+        path: "{{ work_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create sample JSON config file
+      ansible.builtin.copy:
+        content: |
+          {
+            "app_name": "Ansible Demo",
+            "version": "1.0.0",
+            "debug": true,
+            "settings": {
+              "timeout": 30,
+              "retry_count": 3
+            }
+          }
+        dest: "{{ work_dir }}/config.json"
+        mode: '0644'
+
+    - name: Create sample CSV data file
+      ansible.builtin.copy:
+        content: |
+          name,value,category
+          Item 1,100,category_a
+          Item 2,200,category_b
+          Item 3,150,category_a
+          Item 4,300,category_c
+        dest: "{{ work_dir }}/data.csv"
+        mode: '0644'
+
+    - name: Create README file
+      ansible.builtin.copy:
+        content: |
+          # Ansible Demo Project
+
+          This project was created by the Ansible Manager.
+
+          ## Files
+          - `config.json` - Application configuration
+          - `data.csv` - Sample data
+          - `notes.txt` - Project notes
+
+          Generated at: {{ ansible_date_time.iso8601 }}
+        dest: "{{ work_dir }}/README.md"
+        mode: '0644'
+
+    - name: Create notes file
+      ansible.builtin.copy:
+        content: "Project notes created by Ansible on {{ ansible_date_time.iso8601 }}"
+        dest: "{{ work_dir }}/notes.txt"
+        mode: '0644'
+
+    - name: List created files
+      ansible.builtin.command: "ls -la {{ work_dir }}/"
+      register: created_files
+      changed_when: false
+
+    - name: Display created files
+      ansible.builtin.debug:
+        msg: "{{ created_files.stdout_lines }}"

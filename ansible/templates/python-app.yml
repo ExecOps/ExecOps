@@ -1,0 +1,48 @@
+# name: Python Application
+# description: Set up a Python development environment with venv and dependencies
+---
+- name: Python Application Setup
+  hosts: localhost
+  connection: local
+  become: false
+  vars:
+    project_dir: "{{ ansible_env.HOME }}/my-python-app"
+    python_version: "python3"
+    requirements:
+      - fastapi
+      - uvicorn
+      - requests
+      - pyyaml
+  tasks:
+    - name: Check Python version
+      ansible.builtin.command: "{{ python_version }} --version"
+      register: py_version
+      changed_when: false
+
+    - name: Display Python version
+      ansible.builtin.debug:
+        msg: "Python: {{ py_version.stdout }}"
+
+    - name: Create project directory
+      ansible.builtin.file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if pip is available
+      ansible.builtin.command: "{{ python_version }} -m pip --version"
+      register: pip_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display pip version
+      ansible.builtin.debug:
+        msg: "{{ pip_check.stdout | default('pip not available') }}"
+
+    - name: Display project setup summary
+      ansible.builtin.debug:
+        msg:
+          - "Project directory: {{ project_dir }}"
+          - "Python: {{ py_version.stdout }}"
+          - "Pip: {{ pip_check.stdout | default('Not available') }}"
+          - "Required packages: {{ requirements | join(', ') }}"

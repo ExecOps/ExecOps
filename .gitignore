@@ -1,0 +1,69 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+
+# production
+build/
+dist/
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# bun
+bun.lockb
+
+# prisma
+db/
+
+# ansible runtime data (user-generated executions only)
+ansible/executions/*.json
+ansible/executions/*.log
+
+# logs
+*.log
+server.log
+dev.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# infrastructure (Z.ai platform)
+.zscripts/
+Caddyfile
+stages.yaml
+
+# examples & mini-services
+examples/
+mini-services/
+
+# z-ai
+worklog.md
+GUIA-ENTORNO-COMPLETA.md
