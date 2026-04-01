@@ -27,6 +27,11 @@ interface CachedModules {
 let moduleCache: CachedModules | null = null;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// Export cache clearer for install endpoint
+export function clearModuleCache() {
+  moduleCache = null;
+}
+
 // Known valid collection names (namespace.collection format)
 // Used to correctly parse modules with sub-namespaces (e.g., hitachivantara.vspone_block.sds_block.module)
 function getKnownCollections(): Promise<Set<string>> {

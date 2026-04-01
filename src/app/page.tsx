@@ -14,7 +14,7 @@ import {
   ClipboardCopy, Search, Package, Puzzel, Loader2, CircleDot,
   MemoryStick, Timer, Hash, Layers, ArrowUpRight, Zap, Monitor,
   CpuIcon, Database, Globe, Info, ChevronDown, SquareTerminal,
-  Boxes, Sparkles
+  Boxes, Sparkles, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -1693,6 +1693,16 @@ function ModulesView() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [installDialogOpen, setInstallDialogOpen] = useState(false);
+  const [installName, setInstallName] = useState('');
+  const [installing, setInstalling] = useState(false);
+  const [installedNames, setInstalledNames] = useState<string[]>([]);
+
+  const reloadModules = useCallback(() => {
+    fetchModules()
+      .then(data => { setModules(data.modules); setTotal(data.total); setCollections(data.collections || []); })
+      .catch(() => toast.error('Error cargando módulos'));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -1702,6 +1712,37 @@ function ModulesView() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  const handleInstall = async () => {
+    const name = installName.trim();
+    if (!name) return;
+    setInstalling(true);
+    try {
+      const res = await fetch('/api/ansible/modules/install', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: name }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Colección '${name}' instalada correctamente`);
+        setInstalledNames(prev => [...prev, name]);
+        setInstallName('');
+        setInstallDialogOpen(false);
+        // Reload modules after install
+        setLoading(true);
+        fetchModules()
+          .then(d => { setModules(d.modules); setTotal(d.total); setCollections(d.collections || []); })
+          .finally(() => setLoading(false));
+      } else {
+        toast.error(data.error || `Error instalando '${name}'`);
+      }
+    } catch {
+      toast.error('Error de conexión al instalar');
+    } finally {
+      setInstalling(false);
+    }
+  };
 
   const filteredModules = useMemo(() => {
     let result = modules;
@@ -1728,11 +1769,70 @@ function ModulesView() {
           <h2 className="text-xl font-bold tracking-tight">Módulos de Ansible</h2>
           <p className="text-sm text-muted-foreground">{total} módulos en {collections.length} colecciones · Mostrando {filteredModules.length}</p>
         </div>
-        <div className="relative w-full sm:w-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar módulo..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-full sm:w-[280px]" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => setInstallDialogOpen(true)}>
+            <Download className="h-3.5 w-3.5" />
+            Instalar colección
+          </Button>
+          <div className="relative flex-1 sm:flex-none">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Buscar módulo..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-full sm:w-[280px]" />
+          </div>
         </div>
       </div>
+
+      {/* Install Collection Dialog */}
+      <Dialog open={installDialogOpen} onOpenChange={setInstallDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Instalar colección de Ansible
+            </DialogTitle>
+            <DialogDescription>
+              Instala una colección desde Ansible Galaxy. Se añadirán automáticamente los módulos a la lista.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="coll-name">Nombre de la colección</Label>
+              <Input
+                id="coll-name"
+                placeholder="namespace.collection (ej: community.general)"
+                value={installName}
+                onChange={(e) => setInstallName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !installing && handleInstall()}
+                disabled={installing}
+              />
+              <p className="text-xs text-muted-foreground">
+                Formato: <code className="bg-muted px-1 py-0.5 rounded">namespace.collection</code>
+              </p>
+            </div>
+            {installedNames.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Instaladas en esta sesión:</p>
+                <div className="flex flex-wrap gap-1">
+                  {installedNames.map(n => (
+                    <Badge key={n} variant="secondary" className="text-[10px] gap-1">
+                      <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
+                      {n}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInstallDialogOpen(false)} disabled={installing}>
+              Cancelar
+            </Button>
+            <Button onClick={handleInstall} disabled={installing || !installName.trim()}>
+              {installing && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
+              {installing ? 'Instalando...' : 'Instalar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Category Pills */}
       <div className="flex flex-wrap gap-1.5">
