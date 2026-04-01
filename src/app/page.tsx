@@ -2109,7 +2109,7 @@ export default function AnsibleManagerPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px] text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>ExecOps v0.01a</span>
+            <span>ExecOps v0.10b</span>
           </div>
           <div className="flex items-center gap-3">
             {facts && (
