@@ -84,6 +84,7 @@ flowchart TB
         Dashboard["Dashboard"]
         Playbooks["Playbooks"]
         Templates["Plantillas"]
+        Inventory["Inventario"]
         Modules["Módulos"]
         Executions["Ejecuciones"]
     end
@@ -157,6 +158,7 @@ sequenceDiagram
 | **Componentes UI** | shadcn/ui (New York) | 43 componentes |
 | **Iconos** | Lucide React | 0.525+ |
 | **Animaciones** | Framer Motion | 12.x |
+| **Editor de codigo** | Monaco Editor | 4.x |
 | **Notificaciones** | Sonner | 2.x |
 | **Fechas** | date-fns | 4.x |
 | **Motor Ansible** | Ansible Core | 2.20.4 |
@@ -202,7 +204,7 @@ ExecOps/
 │   ├── app/
 │   │   ├── globals.css               # Estilos globales + Tailwind
 │   │   ├── layout.tsx                # Layout raiz (fuentes, metadata)
-│   │   ├── page.tsx                  # App principal (1567 lineas)
+│   │   ├── page.tsx                  # App principal (~2100+ lineas)
 │   │   └── api/
 │   │       └── ansible/
 │   │           ├── facts/route.ts           # GET  /api/ansible/facts
