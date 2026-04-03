@@ -38,12 +38,13 @@ function getAnsibleVersion(): Promise<string> {
       stdio: ["pipe", "pipe", "pipe"],
     });
 
-    let stdout = "";
+    const stdoutChunks: string[] = [];
     proc.stdout.on("data", (data: Buffer) => {
-      stdout += data.toString();
+      stdoutChunks.push(data.toString());
     });
 
     proc.on("close", () => {
+      const stdout = stdoutChunks.join("");
       const match = stdout.match(/ansible-playbook\s+\[core\s+([\d.]+)/);
       resolve(match ? match[1] : "unknown");
     });
@@ -64,18 +65,20 @@ export async function GET() {
       }
     );
 
-    let stdout = "";
-    let stderr = "";
+    const stdoutChunks: string[] = [];
+    const stderrChunks: string[] = [];
 
     proc.stdout.on("data", (data: Buffer) => {
-      stdout += data.toString();
+      stdoutChunks.push(data.toString());
     });
 
     proc.stderr.on("data", (data: Buffer) => {
-      stderr += data.toString();
+      stderrChunks.push(data.toString());
     });
 
     proc.on("close", async (code) => {
+      const stdout = stdoutChunks.join("");
+      const stderr = stderrChunks.join("");
       if (code === 0 && stdout) {
         try {
           const data = parseAnsibleOutput(stdout);

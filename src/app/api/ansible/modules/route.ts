@@ -42,10 +42,11 @@ function getKnownCollections(): Promise<Set<string>> {
       stdio: ["pipe", "pipe", "pipe"],
     });
 
-    let stdout = "";
-    proc.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
+    const stdoutChunks: string[] = [];
+    proc.stdout.on("data", (data: Buffer) => { stdoutChunks.push(data.toString()); });
     proc.stderr.on("data", () => {});
     proc.on("close", () => {
+      const stdout = stdoutChunks.join("");
       const collections = new Set<string>();
       for (const line of stdout.split("\n")) {
         const trimmed = line.trim();
@@ -142,13 +143,15 @@ async function loadModules(): Promise<CachedModules> {
       stdio: ["pipe", "pipe", "pipe"],
     });
 
-    let stdout = "";
-    let stderr = "";
+    const stdoutChunks: string[] = [];
+    const stderrChunks: string[] = [];
 
-    proc.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
-    proc.stderr.on("data", (data: Buffer) => { stderr += data.toString(); });
+    proc.stdout.on("data", (data: Buffer) => { stdoutChunks.push(data.toString()); });
+    proc.stderr.on("data", (data: Buffer) => { stderrChunks.push(data.toString()); });
 
     proc.on("close", (code) => {
+      const stdout = stdoutChunks.join("");
+      const stderr = stderrChunks.join("");
       if (code === 0 && stdout) {
         resolve(parseModules(stdout, knownCollections));
       } else {
