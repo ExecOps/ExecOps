@@ -15,9 +15,14 @@ export async function POST(
   { params }: { params: Promise<{ name: string }> }
 ) {
   const { name } = await params;
+  const filePath = path.join(PLAYBOOKS_DIR, name);
+  const relative = path.relative(PLAYBOOKS_DIR, filePath);
+
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    return NextResponse.json({ error: "Invalid playbook name" }, { status: 400 });
+  }
 
   try {
-    const filePath = path.join(PLAYBOOKS_DIR, name);
     await fs.access(filePath);
 
     const id = randomUUID();

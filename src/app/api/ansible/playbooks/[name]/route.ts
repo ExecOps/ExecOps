@@ -10,6 +10,11 @@ export async function GET(
 ) {
   const { name } = await params;
   const filePath = path.join(PLAYBOOKS_DIR, name);
+  const relative = path.relative(PLAYBOOKS_DIR, filePath);
+
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    return NextResponse.json({ error: "Invalid playbook name" }, { status: 400 });
+  }
 
   try {
     const content = await fs.readFile(filePath, "utf-8");
@@ -34,6 +39,12 @@ export async function PUT(
   { params }: { params: Promise<{ name: string }> }
 ) {
   const { name } = await params;
+  const filePath = path.join(PLAYBOOKS_DIR, name);
+  const relative = path.relative(PLAYBOOKS_DIR, filePath);
+
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    return NextResponse.json({ error: "Invalid playbook name" }, { status: 400 });
+  }
 
   try {
     const body = await request.json();
@@ -43,7 +54,6 @@ export async function PUT(
       return NextResponse.json({ error: "Content is required" }, { status: 400 });
     }
 
-    const filePath = path.join(PLAYBOOKS_DIR, name);
     await fs.writeFile(filePath, content, "utf-8");
 
     return NextResponse.json({ success: true, name });
@@ -61,6 +71,11 @@ export async function DELETE(
 ) {
   const { name } = await params;
   const filePath = path.join(PLAYBOOKS_DIR, name);
+  const relative = path.relative(PLAYBOOKS_DIR, filePath);
+
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    return NextResponse.json({ error: "Invalid playbook name" }, { status: 400 });
+  }
 
   try {
     await fs.unlink(filePath);
