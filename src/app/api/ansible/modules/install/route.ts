@@ -33,13 +33,15 @@ export async function POST(request: NextRequest) {
         stdio: ["pipe", "pipe", "pipe"],
       });
 
-      let stdout = "";
-      let stderr = "";
+      const stdoutChunks: string[] = [];
+      const stderrChunks: string[] = [];
 
-      proc.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
-      proc.stderr.on("data", (data: Buffer) => { stderr += data.toString(); });
+      proc.stdout.on("data", (data: Buffer) => { stdoutChunks.push(data.toString()); });
+      proc.stderr.on("data", (data: Buffer) => { stderrChunks.push(data.toString()); });
 
       proc.on("close", (code) => {
+        const stdout = stdoutChunks.join("");
+        const stderr = stderrChunks.join("");
         resolve({ success: code === 0, stdout, stderr });
       });
 
