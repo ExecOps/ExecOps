@@ -1,0 +1,51 @@
+# name: System Cleanup
+# description: Clean up temporary files, caches and logs to free disk space
+---
+- name: System Cleanup
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Check disk usage before cleanup
+      ansible.builtin.shell: "df -h / | tail -1"
+      register: disk_before
+      changed_when: false
+
+    - name: Display disk usage before
+      ansible.builtin.debug:
+        msg: "Before cleanup: {{ disk_before.stdout }}"
+
+    - name: Find large files in /tmp
+      ansible.builtin.command: "find /tmp -type f -size +10M -exec ls -lh {} + 2>/dev/null | head -20"
+      register: large_tmp_files
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display large tmp files
+      ansible.builtin.debug:
+        msg: "{{ large_tmp_files.stdout_lines | default(['No large files found']) }}"
+
+    - name: Check /tmp disk usage
+      ansible.builtin.command: "du -sh /tmp 2>/dev/null || echo 'N/A'"
+      register: tmp_size
+      changed_when: false
+
+    - name: Display tmp size
+      ansible.builtin.debug:
+        msg: "/tmp size: {{ tmp_size.stdout }}"
+
+    - name: Check npm/bun cache size
+      ansible.builtin.shell: "du -sh {{ ansible_env.HOME }}/.npm 2>/dev/null; du -sh {{ ansible_env.HOME }}/.bun/install 2>/dev/null; echo 'done'"
+      register: cache_sizes
+      changed_when: false
+
+    - name: Display cache sizes
+      ansible.builtin.debug:
+        msg: "{{ cache_sizes.stdout_lines }}"
+
+    - name: Display cleanup summary
+      ansible.builtin.debug:
+        msg:
+          - "Disk before: {{ disk_before.stdout }}"
+          - "/tmp: {{ tmp_size.stdout }}"
+          - "Consider running cleanup manually if disk is full"

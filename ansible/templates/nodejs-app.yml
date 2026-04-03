@@ -1,0 +1,48 @@
+# name: Node.js Application
+# description: Set up a Node.js development environment
+---
+- name: Node.js Application Setup
+  hosts: localhost
+  connection: local
+  become: false
+  vars:
+    project_dir: "{{ ansible_env.HOME }}/my-nodejs-app"
+  tasks:
+    - name: Check Node.js version
+      ansible.builtin.command: node --version
+      register: node_version
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display Node.js version
+      ansible.builtin.debug:
+        msg: "{{ node_version.stdout | default('Node.js not installed') }}"
+
+    - name: Check npm version
+      ansible.builtin.command: npm --version
+      register: npm_version
+      changed_when: false
+      ignore_errors: true
+
+    - name: Check Bun version
+      ansible.builtin.command: bun --version
+      register: bun_version
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display runtime info
+      ansible.builtin.debug:
+        msg:
+          - "Node.js: {{ node_version.stdout | default('Not installed') }}"
+          - "npm: {{ npm_version.stdout | default('Not installed') }}"
+          - "Bun: {{ bun_version.stdout | default('Not installed') }}"
+
+    - name: Create project directory
+      ansible.builtin.file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Display project setup summary
+      ansible.builtin.debug:
+        msg: "Project directory: {{ project_dir }} created"

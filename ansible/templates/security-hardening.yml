@@ -1,0 +1,51 @@
+# name: Security Hardening
+# description: Basic security checks and recommendations for the system
+---
+- name: Security Hardening
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Check open ports
+      ansible.builtin.command: ss -tlnp
+      register: open_ports
+      changed_when: false
+
+    - name: Display open ports
+      ansible.builtin.debug:
+        msg: "{{ open_ports.stdout_lines }}"
+
+    - name: Check running processes count
+      ansible.builtin.command: "ps aux --no-headers | wc -l"
+      register: process_count
+      changed_when: false
+
+    - name: Display process count
+      ansible.builtin.debug:
+        msg: "Running processes: {{ process_count.stdout }}"
+
+    - name: Check disk usage
+      ansible.builtin.command: "df -h /"
+      register: disk_usage
+      changed_when: false
+
+    - name: Display disk usage
+      ansible.builtin.debug:
+        msg: "{{ disk_usage.stdout }}"
+
+    - name: Check memory usage
+      ansible.builtin.command: "free -h"
+      register: memory_usage
+      changed_when: false
+
+    - name: Display memory usage
+      ansible.builtin.debug:
+        msg: "{{ memory_usage.stdout }}"
+
+    - name: Display security summary
+      ansible.builtin.debug:
+        msg:
+          - "Open ports: {{ open_ports.stdout_lines | length }}"
+          - "Running processes: {{ process_count.stdout }}"
+          - "Disk: {{ disk_usage.stdout_lines[1] }}"
+          - "Memory: {{ memory_usage.stdout_lines[1] }}"

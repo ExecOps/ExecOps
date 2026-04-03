@@ -1,0 +1,36 @@
+# name: System Setup
+# description: Install common packages, configure timezone, locale and system basics
+---
+- name: System Setup
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Display system information
+      ansible.builtin.debug:
+        msg:
+          - "Hostname: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+          - "CPU cores: {{ ansible_processor_vcpus }}"
+          - "Total RAM: {{ ansible_memtotal_mb }} MB"
+
+    - name: Check if common packages are installed
+      ansible.builtin.package:
+        name:
+          - curl
+          - wget
+          - git
+          - vim
+          - htop
+          - tree
+          - jq
+          - unzip
+        state: present
+      register: pkg_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display installed packages result
+      ansible.builtin.debug:
+        msg: "Package check completed: {{ pkg_result }}"

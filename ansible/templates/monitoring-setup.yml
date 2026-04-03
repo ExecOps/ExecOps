@@ -1,0 +1,52 @@
+# name: Monitoring Setup
+# description: Collect and display system metrics and performance data
+---
+- name: Monitoring Setup
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Gather system facts
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+        filter: ansible_*
+
+    - name: Display CPU information
+      ansible.builtin.debug:
+        msg:
+          - "Processor: {{ ansible_processor | first | default('Unknown') }}"
+          - "CPU count: {{ ansible_processor_vcpus }}"
+          - "Architecture: {{ ansible_architecture }}"
+
+    - name: Display memory information
+      ansible.builtin.debug:
+        msg:
+          - "Total RAM: {{ ansible_memtotal_mb }} MB"
+          - "Free RAM: {{ ansible_memfree_mb }} MB"
+          - "Swap total: {{ ansible_swaptotal_mb | default(0) }} MB"
+
+    - name: Display disk information
+      ansible.builtin.debug:
+        msg:
+          - "Total disk: {{ ansible_devices | selectattr('links', 'defined') | first | default({}) }}"
+
+    - name: Display network information
+      ansible.builtin.debug:
+        msg: "{{ ansible_all_ipv4_addresses | default([]) }}"
+
+    - name: Display distribution info
+      ansible.builtin.debug:
+        msg:
+          - "Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "Kernel version: {{ ansible_kernel_version }}"
+
+    - name: Show uptime
+      ansible.builtin.command: uptime -p
+      register: uptime
+      changed_when: false
+
+    - name: Display uptime
+      ansible.builtin.debug:
+        msg: "System uptime: {{ uptime.stdout }}"

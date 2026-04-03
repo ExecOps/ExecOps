@@ -1,0 +1,44 @@
+# name: Web Server Check
+# description: Verify web server configuration and check running services
+---
+- name: Web Server Check
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Check if Next.js dev server is running
+      ansible.builtin.command: "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000"
+      register: nextjs_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display Next.js status
+      ansible.builtin.debug:
+        msg: "{{ 'Next.js is running on :3000' if nextjs_check.stdout == '200' else 'Next.js is NOT running on :3000' }}"
+
+    - name: Check Caddy gateway
+      ansible.builtin.command: "curl -s -o /dev/null -w '%{http_code}' http://localhost:81"
+      register: caddy_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display Caddy status
+      ansible.builtin.debug:
+        msg: "{{ 'Caddy is running on :81' if caddy_check.stdout == '200' else 'Caddy is NOT running on :81' }}"
+
+    - name: Check ZAI Control service
+      ansible.builtin.command: "curl -s -o /dev/null -w '%{http_code}' http://localhost:12600"
+      register: zai_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display ZAI Control status
+      ansible.builtin.debug:
+        msg: "{{ 'ZAI Control is running on :12600' if zai_check.stdout == '200' else 'ZAI Control is NOT reachable on :12600' }}"
+
+    - name: Display service summary
+      ansible.builtin.debug:
+        msg:
+          - "Next.js (:3000): {{ 'Running' if nextjs_check.stdout == '200' else 'Down' }}"
+          - "Caddy (:81): {{ 'Running' if caddy_check.stdout == '200' else 'Down' }}"
+          - "ZAI Control (:12600): {{ 'Running' if zai_check.stdout == '200' else 'Down' }}"

@@ -1,0 +1,41 @@
+# name: Backup Configuration
+# description: List important directories and files for backup planning
+---
+- name: Backup Configuration
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: List home directory contents
+      ansible.builtin.command: "ls -la {{ ansible_env.HOME }}"
+      register: home_contents
+      changed_when: false
+
+    - name: Display home directory contents
+      ansible.builtin.debug:
+        msg: "{{ home_contents.stdout_lines[:20] }}"
+
+    - name: Check disk space
+      ansible.builtin.shell: "df -h {{ ansible_env.HOME }} | tail -1"
+      register: disk_info
+      changed_when: false
+
+    - name: Display disk info
+      ansible.builtin.debug:
+        msg: "{{ disk_info.stdout }}"
+
+    - name: Count files in home directory
+      ansible.builtin.shell: "find {{ ansible_env.HOME }} -maxdepth 3 -type f | wc -l"
+      register: file_count
+      changed_when: false
+
+    - name: Display file count
+      ansible.builtin.debug:
+        msg: "Total files (depth 3): {{ file_count.stdout }}"
+
+    - name: Display backup summary
+      ansible.builtin.debug:
+        msg:
+          - "Home: {{ ansible_env.HOME }}"
+          - "Files to backup: {{ file_count.stdout }}"
+          - "Disk: {{ disk_info.stdout }}"

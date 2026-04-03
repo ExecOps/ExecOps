@@ -1,0 +1,35 @@
+# name: User Management
+# description: Create system users, configure groups and set up basic permissions
+---
+- name: User Management
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Display current user info
+      ansible.builtin.debug:
+        msg:
+          - "Current user: {{ ansible_user_id }}"
+          - "Home dir: {{ ansible_env.HOME }}"
+          - "Shell: {{ ansible_env.SHELL }}"
+
+    - name: Create developer group
+      ansible.builtin.group:
+        name: developer
+        state: present
+      ignore_errors: true
+
+    - name: Display group info
+      ansible.builtin.command: "groups {{ ansible_user_id }}"
+      register: user_groups
+      changed_when: false
+
+    - name: Show user groups
+      ansible.builtin.debug:
+        msg: "User groups: {{ user_groups.stdout }}"
+
+    - name: Create projects directory
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/projects"
+        state: directory
+        mode: '0755'

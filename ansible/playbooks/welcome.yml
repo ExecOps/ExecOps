@@ -1,0 +1,49 @@
+# name: Welcome Playbook
+# description: A sample playbook to verify ExecOps is working correctly
+---
+- name: Welcome Playbook
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: Display welcome message
+      ansible.builtin.debug:
+        msg: "Welcome to ExecOps! This playbook confirms everything is working."
+
+    - name: Gather system facts
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+
+    - name: Display system information
+      ansible.builtin.debug:
+        msg:
+          - "Hostname: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+          - "CPU Cores: {{ ansible_processor_vcpus }}"
+          - "Total RAM: {{ ansible_memtotal_mb }} MB"
+          - "Free RAM: {{ ansible_memfree_mb }} MB"
+          - "Python: {{ ansible_python.version }}"
+          - "Current Time: {{ ansible_date_time.iso8601 }}"
+
+    - name: Create ExecOps directory
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/execops"
+        state: directory
+        mode: '0755'
+
+    - name: Verify writable permissions
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/execops/test.txt"
+        state: touch
+        mode: '0644'
+
+    - name: Cleanup test file
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/execops/test.txt"
+        state: absent
+
+    - name: Display success message
+      ansible.builtin.debug:
+        msg: "All checks passed! ExecOps is ready to use."
