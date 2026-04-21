@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/screenshot.png" alt="ExecOps Dashboard" width="900" />
+  <img src="public/screenshot-dashboard.png" alt="ExecOps Dashboard" width="900" />
 </p>
 
 <h1 align="center">ExecOps <sup>v0.01a</sup></h1>
@@ -121,11 +121,43 @@ La interfaz se compone de **6 pestañas** principales:
 | **Playbooks** | CRUD de playbooks con editor, ejecución en tiempo real y terminal |
 | **Plantillas** | 10 plantillas predefinidas con instalación en un clic |
 | **Inventario** | Editor de `inventory.ini` con parseo automático de hosts y grupos |
-| **Módulos** | Explorador de 9,712 módulos en 93 colecciones de Ansible |
+| **Módulos** | Explorador de 9,712 módulos en 92 colecciones de Ansible |
 | **Ejecuciones** | Historial completo con visor de logs fullscreen |
 
+### Dashboard
+
 <p align="center">
-  <img src="public/screenshot.png" alt="ExecOps Dashboard" width="800" />
+  <img src="public/screenshot-dashboard.png" alt="ExecOps Dashboard" width="800" />
+</p>
+
+### Playbooks
+
+<p align="center">
+  <img src="public/screenshot-playbooks.png" alt="ExecOps Playbooks" width="800" />
+</p>
+
+### Inventario
+
+<p align="center">
+  <img src="public/screenshot-inventario.png" alt="ExecOps Inventario" width="800" />
+</p>
+
+### Plantillas
+
+<p align="center">
+  <img src="public/screenshot-plantillas.png" alt="ExecOps Plantillas" width="800" />
+</p>
+
+### Módulos
+
+<p align="center">
+  <img src="public/screenshot-modulos.png" alt="ExecOps Módulos" width="800" />
+</p>
+
+### Ejecuciones
+
+<p align="center">
+  <img src="public/screenshot-ejecuciones.png" alt="ExecOps Ejecuciones" width="800" />
 </p>
 
 ---
